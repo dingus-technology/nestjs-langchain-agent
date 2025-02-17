@@ -14,7 +14,7 @@
   </a>
 </div>
 
-A dynamic and typesafe agent framework for NestJS applications.
+A simple agent framework for NestJS applications, allowing you to create tool calls in a nestjs DI friendly way
 
 ---
 
@@ -24,7 +24,7 @@ A dynamic and typesafe agent framework for NestJS applications.
 npm install @dingusjs-scope/nestjs-agent
 ```
 
-## Example 
+## Example
 
 1. Registering Agents and Tools
 
@@ -56,14 +56,13 @@ import { Agent, BaseAgent, LLMClient } from '@dingusjs/nestjs-agent';
 @Agent('myAgent')
 export class MyAgent extends BaseAgent<string> {
   parse(response: string): string {
-    return response
+    return response;
   }
 
   getClient() {
     //return an instance on LLMClient
   }
 }
-
 ```
 
 3. Creating a Tool
@@ -80,7 +79,7 @@ export class GoogleSearch {
 }
 ```
 
-4. Using the agent registry 
+4. Using the agent registry
 
 ```typescript
 import { Injectable } from '@nestjs/common';
@@ -97,5 +96,4 @@ export class SomeService {
     console.log('Agent result:', result);
   }
 }
-
 ```
