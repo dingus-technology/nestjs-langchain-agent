@@ -21,7 +21,7 @@ A simple agent framework for NestJS applications, allowing you to create tool ca
 ## Installation
 
 ```bash
-npm install @dingusjs-scope/nestjs-agent
+npm install @dingusjs-scope/nestjs-langchain-agent
 ```
 
 ## Example
@@ -33,44 +33,31 @@ In your application's main module, import the dynamic module to automatically re
 ```typescript
 // src/app.module.ts
 import { Module } from '@nestjs/common';
-import { AgentToolsModule } from '@dingusjs/nestjs-agent';
+import { LangchainModule } from '@dinguslabs/nestjs-langchain-agent';
 import { MyAgent } from './my-agent';
 import { GoogleSearch } from './google-search';
 import { SomeService } from './some.service';
 
 @Module({
   imports: [
-    AgentToolsModule.register(), // Auto-registers all agents and tools.
+    LangchainModule.register({
+      useFactory: () => ({
+        //your agent config here like responseStructure
+      }),
+      inject: [],
+    }),
   ],
   providers: [SomeService, GoogleSearch, MyAgent],
 })
 export class AppModule {}
 ```
 
-2. Creating an agent
+2. Creating a Tool
 
 ```typescript
-// src/my-agent.ts
-import { Agent, BaseAgent, LLMClient } from '@dingusjs/nestjs-agent';
+import { AgentTool } from '@dinguslabs/nestjs-langchain-agent';
 
-@Agent('myAgent')
-export class MyAgent extends BaseAgent<string> {
-  parse(response: string): string {
-    return response;
-  }
-
-  getClient() {
-    //return an instance on LLMClient
-  }
-}
-```
-
-3. Creating a Tool
-
-```typescript
-import { AgentTool } from '@dingusjs/nestjs-agent';
-
-@AgentTool({ agent: 'myAgent', tool: 'GoogleSearch' })
+@AgentTool({ agents: ['myAgent'], tool: 'GoogleSearch' })
 export class GoogleSearch {
   async execute(): Promise<{ response: string }> {
     // Implement your tool logic here.
@@ -79,20 +66,25 @@ export class GoogleSearch {
 }
 ```
 
-4. Using the agent registry
+_Note_: Global agents are defined like `@AgentTool({ agents: ['*'], tool: 'GoogleSearch' })`
+
+3. Using the agent factory
 
 ```typescript
 import { Injectable } from '@nestjs/common';
-import { AgentRegistry } from '@dingusjs/nestjs-agent';
+import { AgentRegistry } from '@dinguslabs/nestjs-langchain-agent';
 
 @Injectable()
 export class SomeService {
-  constructor(private readonly agentRegistry: AgentRegistry) {}
+  constructor(private readonly agentRegistry: AgentFactory) {}
 
   async runAgentTask() {
     // Retrieve the agent instance registered as "myAgent"
-    const agent = this.agentRegistry.get('myAgent');
-    const result = await agent.run('sample parameter');
+    const agent = this.agentRegistry.create('myAgent');
+    const result = await agent.invoke({
+      messages: [],
+      //...
+    });
     console.log('Agent result:', result);
   }
 }
